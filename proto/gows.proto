@@ -457,6 +457,9 @@ message MessageRequest {
 
   // Forward an existing message as-is; other content fields are ignored
   ForwardOptions forward = 20;
+
+  // Interactive (native flow) message. Mutually exclusive with every other content field.
+  InteractiveMessage interactive = 1000; // gows-plus fork range 1000+
 }
 
 message Row {
@@ -844,4 +847,76 @@ message PollVoteMessage {
   string pollMessageId = 1;
   optional int64 pollServerId = 2;  // only for Channels
   repeated string options = 3;
+}
+
+//
+// Interactive (native flow) messages
+//
+message InteractiveHeader {
+  optional string title = 1;
+  optional string subtitle = 2;
+  Media media = 3; // IMAGE, VIDEO or DOCUMENT
+}
+
+message QuickReplyButton {
+  string displayText = 1;
+  string id = 2; // empty -> generated
+}
+
+message CtaUrlButton {
+  string displayText = 1;
+  string url = 2;
+  optional string merchantUrl = 3; // empty -> url
+}
+
+message CtaCallButton {
+  string displayText = 1;
+  string phoneNumber = 2;
+}
+
+message CtaCopyButton {
+  string displayText = 1;
+  string copyCode = 2;
+}
+
+enum PixKeyType {
+  PIX_KEY_TYPE_UNSPECIFIED = 0;
+  PIX_KEY_TYPE_PHONE = 1;
+  PIX_KEY_TYPE_EMAIL = 2;
+  PIX_KEY_TYPE_CPF = 3;
+  PIX_KEY_TYPE_CNPJ = 4;
+  PIX_KEY_TYPE_RANDOM = 5; // -> "EVP"
+}
+
+message PixButton {
+  string merchantName = 1;
+  string key = 2;
+  PixKeyType keyType = 3;
+  string currency = 4; // empty -> "BRL"
+}
+
+// Escape hatch: sent as-is, no mixing rules applied.
+message NativeFlowRawButton {
+  string name = 1;
+  string paramsJson = 2;
+}
+
+message NativeFlowButton {
+  oneof button {
+    QuickReplyButton reply = 1;
+    CtaUrlButton url = 2;
+    CtaCallButton call = 3;
+    CtaCopyButton copy = 4;
+    PixButton pix = 5;
+    // 6: reserved for SingleSelectButton singleSelect (phase 2)
+    NativeFlowRawButton raw = 7;
+  }
+}
+
+message InteractiveMessage {
+  InteractiveHeader header = 1;
+  string body = 2;
+  optional string footer = 3;
+  repeated NativeFlowButton buttons = 4;
+  // 5: reserved for repeated CarouselCard cards (phase 2)
 }

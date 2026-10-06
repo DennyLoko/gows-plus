@@ -53,6 +53,11 @@ func (s *Server) SendMessage(ctx context.Context, req *__.MessageRequest) (*__.M
 	if err != nil {
 		return nil, err
 	}
+	if req.GetInteractive() != nil {
+		if err := validateInteractiveRequest(req, jid); err != nil {
+			return nil, err
+		}
+	}
 
 	var contextInfo *waE2E.ContextInfo
 
@@ -276,6 +281,15 @@ func (s *Server) SendMessage(ctx context.Context, req *__.MessageRequest) (*__.M
 			}},
 		}
 		extra.AdditionalNodes = &[]waBinary.Node{node}
+
+	} else if req.GetInteractive() != nil {
+		// Interactive (native flow) Message
+		var nodes []waBinary.Node
+		message, nodes, err = prepareInteractive(ctx, cli.Log, req.GetInteractive(), contextInfo, newHeaderUploader(cli, jid))
+		if err != nil {
+			return nil, err
+		}
+		extra.AdditionalNodes = &nodes
 
 	} else if req.Location != nil {
 		// Location Message
