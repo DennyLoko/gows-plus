@@ -112,6 +112,11 @@ func isRealMessage(event *events.Message) bool {
 		return true
 	case msg.ButtonsResponseMessage != nil:
 		return true
+	case msg.InteractiveMessage != nil, msg.InteractiveResponseMessage != nil, msg.ListResponseMessage != nil:
+		return true
+	case msg.TemplateButtonReplyMessage != nil:
+		// quick_reply clicked on WhatsApp Web/Desktop arrives as a template button reply
+		return true
 	default:
 		return false
 	}
